@@ -6,16 +6,16 @@ Validated through testbenches and hardware implementation on the **Nexys A7-100T
 
 ![Design Waveform](design/images/waveform_test_1_3x3_transactions.png)
 
-## 🚀 Key Features
+## Key Features
 * **Configurable Matrix Transmission:** Supports sending single bytes or formatted data matrices ($32^2$, $128^2$, $256^2$).
-* [cite_start]**Automatic Formatting:** The controller automatically inserts Space characters (`0x20`) between data bytes and CR/LF (`0x0D`, `0x0A`) sequences at end-of-row [cite: 16-18, 255].
-* [cite_start]**Programmable Delay:** Hardware timers insert delays (0ms, 50ms, 100ms, 200ms) between transactions to accommodate slow receivers [cite: 637-640].
-* [cite_start]**Debounced Input:** Implements a long-press safety mechanism for the Start button [cite: 36-37].
-* [cite_start]**Status Indication:** Real-time feedback via RGB LEDs (Busy/Idle) and Seven-Segment Display (Hexadecimal counters) [cite: 287-289].
+* [cite_start]**Automatic Formatting:** The controller automatically inserts Space characters (`0x20`) between data bytes and CR/LF (`0x0D`, `0x0A`) sequences at end-of-row [cite: 23-26, 645].
+* [cite_start]**Programmable Delay:** Hardware timers insert delays (0ms, 50ms, 100ms, 200ms) between transactions to accommodate slow receivers [cite: 95-96, 637-640].
+* **Debounced Input:** Implements a long-press safety mechanism for the Start button.
+* **Status Indication:** Real-time feedback via RGB LEDs (Busy/Idle) and Seven-Segment Display (Hexadecimal counters).
 
 ---
 
-## 🛠 Hardware Specifications
+## Hardware Specifications
 * **Board:** Digilent Nexys A7-100T
 * **Clock:** 100 MHz System Clock
 * **Baud Rate:** 57,600 bps (Derived via `clock_divider` parameter `1736`).
@@ -39,12 +39,12 @@ Validated through testbenches and hardware implementation on the **Nexys A7-100T
 
 ---
 
-## ⚙️ Configuration & Usage
+## Configuration & Usage
 
 The system behavior is controlled via the FPGA switches (`SW`) and the Center Button. The configuration is latched only when the start sequence is initiated.
 
 ### 1. Transmission Mode (`SW[14:13]`)
-[cite_start]Determines the volume of data sent [cite: 43-45, 69-70].
+[cite_start]Determines the volume of data sent [cite: 93-94].
 
 | SW[14:13] | Mode | Description |
 | :---: | :--- | :--- |
@@ -54,7 +54,7 @@ The system behavior is controlled via the FPGA switches (`SW`) and the Center Bu
 | `11` | **256x256 Matrix** | Sends 65,536 bytes formatted in 256 rows. |
 
 ### 2. Inter-Byte Delay (`SW[9:8]`)
-[cite_start]Inserts a hardware wait state after every byte sent [cite: 39-42, 636-640].
+[cite_start]Inserts a hardware wait state after every byte sent [cite: 95-96, 638-639].
 
 | SW[9:8] | Delay Time |
 | :---: | :--- |
@@ -67,53 +67,50 @@ The system behavior is controlled via the FPGA switches (`SW`) and the Center Bu
 To avoid accidental transmissions, the design uses a **Long Press** mechanism:
 1.  Set switches.
 2.  Hold **Center Button** (BTNC).
-3.  [cite_start]Wait for the internal counter to reach 64 cycles (approx. 20ms debounce) to latch data and trigger the FSM [cite: 36-37].
+3.  [cite_start]Wait for the internal counter to reach 64 cycles (approx. 20ms debounce) to latch data and trigger the FSM [cite: 36-37, 114].
 
 ---
 
-## 🏗 System Architecture
+## System Architecture
 
 ![TX UART Controller Micro Architecture](design/images/micro-architecture.png)
 
-The design is separated into two primary Finite State Machines (FSMs) to decouple protocol handling from application logic.
+The design is separated into two primary FSMs (Application & Physical layers) and a modular display subsystem.
 
-### 1. High-Level Transmitter FSM (`transmitter.sv`)
-This module acts as the "Application Layer." It orchestrates the entire matrix transmission.
-* **Logic:** It tracks `row_counter` and `line_counter`.
-* **Formatting:**
-    * [cite_start]**Space Injection:** If `row_counter` is odd, it requests the UART to send `0x20` (Space)[cite: 18].
-    * [cite_start]**Newline Injection:** At the end of a row (`num_bytes*2`), it requests `0x0D` (CR) and `0x0A` (LF) [cite: 16-17].
-* [cite_start]**Handshake:** It waits for the `busy_uart` signal to de-assert before loading the next character[cite: 30].
+### 1. Finite State Machines
+* **Transmitter FSM (`transmitter.sv`):** Orchestrates matrix formatting (Rows/Columns), injects Special Characters (Space `0x20`, Newline `0x0D 0x0A`), and manages the handshake with the UART core.
+* [cite_start]**UART FSM (`uart_fsm_1.sv`):** Handles physical serialization (`START` $\to$ `DATA` $\to$ `STOP`) and implements the programmable `WAIT` state for inter-byte delays [cite: 167-168].
 
-### 2. Low-Level UART FSM (`uart_fsm_1.sv`)
-This module acts as the "Physical Layer."
-* **States:** `IDLE` $\to$ `START` $\to$ `DATA` (Shift LSB) $\to$ `STOP` $\to$ `WAIT`.
-* **Wait State:** Unlike standard UARTs, this FSM enters a `WAIT` state after `STOP`. [cite_start]It remains there until `count_delay` matches the user-selected delay value[cite: 650, 656].
+### 2. Display Subsystem (`top_seven_segment_controller.sv`)
+Displays current transaction status using Time-Division Multiplexing:
+* [cite_start]**`rotate_register.sv`:** Generates the walking-one sequence to scan the anodes [cite: 137-140].
+* [cite_start]**`anode_decoder.sv`:** Decodes the active anode to select the corresponding 4-bit data nibble [cite: 63-66].
+* [cite_start]**`mux4x1.sv`:** Routes the selected nibble to the segment decoder [cite: 77-80].
+* [cite_start]**`decoder_bin2hex.sv`:** Converts 4-bit binary to 7-segment Hex patterns [cite: 40-57].
 
 ---
 
-## 📊 Verification & Results
-
-### Simulation
-The design was verified using a full-chip testbench (`Chip_Top_TX`). The waveform below demonstrates a $3\times3$ matrix transmission. Note the `SPECIAL_CHAR` states where spaces and newlines are inserted automatically.
-
-### Synthesis (Vivado)
-* **Target Device:** Artix-7 (xc7a100tcsg324-1)
-* [cite_start]**LUT Utilization:** ~203 LUTs (<1%) [cite: 590-593].
-* [cite_start]**Timing:** 100MHz constraint met with 0 errors/warnings[cite: 530, 560].
-
----
-
-### 📂 Directory Structure
+### Directory Structure
 ```text
 /design
-  ├── Chip_Top_TX.sv         # Top Level Wrapper
-  ├── Top_Transmitter.sv     # Controller Subsystem
-  ├── transmitter.sv         # Application Layer FSM (Matrix Logic)
-  ├── uart_fsm_1.sv          # Physical Layer FSM (UART Protocol)
-  ├── button_counter.sv      # Debounce & Latch Logic
-  ├── anode_decoder.sv       # 7-Segment Driver
-  └── clock_divider.sv       # Baud Rate Generator
+  ├── Chip_Top_TX.sv                  # Top Level Wrapper
+  ├── Top_Transmitter.sv              # Controller Subsystem
+  ├── transmitter.sv                  # Application Layer FSM (Matrix Logic)
+  ├── uart_fsm_1.sv                   # Physical Layer FSM (UART Protocol)
+  ├── button_counter.sv               # Debounce & Latch Logic
+  ├── clock_divider.sv                # Baud Rate Generator
+  ├── clock_divider32.sv              # Display Refresh Clock
+  │
+  └── /display
+      ├── top_seven_segment_controller.sv # Display Top Level
+      ├── rotate_register.sv          # Anode Scanner
+      ├── anode_decoder.sv            # Anode Selector Logic
+      ├── mux4x1.sv                   # Data Nibble Selector
+      └── decoder_bin2hex.sv          # Hex to 7-Seg Decoder
+/testbench
+  ├── tb_Chip_Top.sv
+  ├── tb_top_transmitter.sv
+  └── tb_uart_fsm_1.sv
 /constraints
   └── Nexys_TX_Controller.xdc
 /docs
