@@ -1,18 +1,25 @@
 # UART TX Controller — FPGA RTL Design
+
 A complete **SystemVerilog implementation** of a UART Transmit Controller supporting configurable inter-byte delays, matrix-formatted multi-byte transmissions, and a fully integrated **seven-segment display subsystem**.  
 Validated through testbenches and hardware implementation on the **Nexys A7-100T (Artix-7)** board.
 
+---
+
+## 📡 Example Waveform (3×3 Transactions)
 ![Design Waveform](design/images/waveform_test_1_3x3_transactions.png)
-### **Chip_Top_TX.sv — Port Summary**
+
+---
+
+## 📁 Top-Level Module — `Chip_Top_TX.sv`
 
 ![Top TX UART Controller](design/images/Top_TX_UART_Controller.png)
 
-
+### **Port Summary**
 
 | Signal | Direction | Width | Description |
-|--------|-----------|-------|-------------|
+|--------|-----------|--------|-------------|
 | `system_clock` | Input | 1 | 100 MHz FPGA system clock |
-| `cpu_rst_n` | Input | 1 | Active-low async reset |
+| `cpu_rst_n` | Input | 1 | Active-low asynchronous reset |
 | `SW[7:0]` | Input | 8 | Data byte to transmit |
 | `SW[9:8]` | Input | 2 | Delay configuration |
 | `SW[14:13]` | Input | 2 | Number of bytes to send |
@@ -25,9 +32,11 @@ Validated through testbenches and hardware implementation on the **Nexys A7-100T
 
 ---
 
-# System Architecture
+# 🧱 System Architecture
+
 ![TX UART Controller Micro Architecture](design/images/micro-architecture.png)
-## Major Components
+
+## 🔧 Major Components
 
 | Module | Description |
 |--------|-------------|
@@ -36,11 +45,7 @@ Validated through testbenches and hardware implementation on the **Nexys A7-100T
 | **Button Counter** | Long-press detection & debouncing |
 | **Clock Dividers** | 3.2 kHz for UART & 500 Hz for seven-segment |
 | **Seven-Segment Controller** | Displays values T0–T3 |
-| **Chip Top** | Integrates all modules together |
+| **Chip Top** | Integrates all modules into one cohesive system |
 
 ---
-
-
-
-
 
