@@ -21,3 +21,17 @@ Validated through testbenches and hardware implementation on the **Nexys A7-100T
 
 ---
 
+# System Architecture
+
+## Major Components
+
+| Module | Description |
+|--------|-------------|
+| **UART FSM** | Bit-level UART engine (start → data → stop → wait) |
+| **Transmitter FSM** | Controls multi-byte sequencing & formatting |
+| **Button Counter** | Long-press detection & debouncing |
+| **Clock Dividers** | 3.2 kHz for UART & 500 Hz for seven-segment |
+| **Seven-Segment Controller** | Displays values T0–T3 |
+| **Chip Top** | Integrates all modules together |
+
+---
