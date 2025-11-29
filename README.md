@@ -1,4 +1,4 @@
-# UART TX Controller — FPGA RTL Design
+# UART TX MAC & PHY — FPGA RTL Design
 
 A complete **SystemVerilog implementation** of a UART Transmit Controller supporting configurable inter-byte delays, matrix-formatted multi-byte transmissions, and a fully integrated **seven-segment display subsystem**.
 
