@@ -1,4 +1,4 @@
-# UART TX MAC & PHY — FPGA RTL Design
+# UART TX MAC & PHY — RTL Design
 
 A complete **SystemVerilog implementation** of a UART Transmit Controller supporting configurable inter-byte delays, matrix-formatted multi-byte transmissions, and a fully integrated **seven-segment display subsystem**.
 
@@ -8,8 +8,8 @@ Validated through testbenches and hardware implementation on the **Nexys A7-100T
 
 ## Key Features
 * **Configurable Matrix Transmission:** Supports sending single bytes or formatted data matrices ($32^2$, $128^2$, $256^2$).
-* [cite_start]**Automatic Formatting:** The controller automatically inserts Space characters (`0x20`) between data bytes and CR/LF (`0x0D`, `0x0A`) sequences at end-of-row [cite: 23-26, 645].
-* [cite_start]**Programmable Delay:** Hardware timers insert delays (0ms, 50ms, 100ms, 200ms) between transactions to accommodate slow receivers [cite: 95-96, 637-640].
+* [cite_start]**Automatic Formatting:** The controller automatically inserts Space characters (`0x20`) between data bytes and CR/LF (`0x0D`, `0x0A`) sequences at end-of-row.
+* [cite_start]**Programmable Delay:** Hardware timers insert delays (0ms, 50ms, 100ms, 200ms) between transactions to accommodate slow receivers.
 * **Debounced Input:** Implements a long-press safety mechanism for the Start button.
 * **Status Indication:** Real-time feedback via RGB LEDs (Busy/Idle) and Seven-Segment Display (Hexadecimal counters).
 
@@ -44,7 +44,7 @@ Validated through testbenches and hardware implementation on the **Nexys A7-100T
 The system behavior is controlled via the FPGA switches (`SW`) and the Center Button. The configuration is latched only when the start sequence is initiated.
 
 ### 1. Transmission Mode (`SW[14:13]`)
-[cite_start]Determines the volume of data sent [cite: 93-94].
+[cite_start]Determines the volume of data sent.
 
 | SW[14:13] | Mode | Description |
 | :---: | :--- | :--- |
@@ -54,7 +54,7 @@ The system behavior is controlled via the FPGA switches (`SW`) and the Center Bu
 | `11` | **256x256 Matrix** | Sends 65,536 bytes formatted in 256 rows. |
 
 ### 2. Inter-Byte Delay (`SW[9:8]`)
-[cite_start]Inserts a hardware wait state after every byte sent [cite: 95-96, 638-639].
+[cite_start]Inserts a hardware wait state after every byte sent.
 
 | SW[9:8] | Delay Time |
 | :---: | :--- |
@@ -67,7 +67,7 @@ The system behavior is controlled via the FPGA switches (`SW`) and the Center Bu
 To avoid accidental transmissions, the design uses a **Long Press** mechanism:
 1.  Set switches.
 2.  Hold **Center Button** (BTNC).
-3.  [cite_start]Wait for the internal counter to reach 64 cycles (approx. 20ms debounce) to latch data and trigger the FSM [cite: 36-37, 114].
+3.  [cite_start]Wait for the internal counter to reach 64 cycles (approx. 20ms debounce) to latch data and trigger the FSM.
 
 ---
 
@@ -79,14 +79,14 @@ The design is separated into two primary FSMs (Application & Physical layers) an
 
 ### 1. Finite State Machines
 * **Transmitter FSM (`transmitter.sv`):** Orchestrates matrix formatting (Rows/Columns), injects Special Characters (Space `0x20`, Newline `0x0D 0x0A`), and manages the handshake with the UART core.
-* [cite_start]**UART FSM (`uart_fsm_1.sv`):** Handles physical serialization (`START` $\to$ `DATA` $\to$ `STOP`) and implements the programmable `WAIT` state for inter-byte delays [cite: 167-168].
+* [cite_start]**UART FSM (`uart_fsm_1.sv`):** Handles physical serialization (`START` $\to$ `DATA` $\to$ `STOP`) and implements the programmable `WAIT` state for inter-byte delays.
 
 ### 2. Display Subsystem (`top_seven_segment_controller.sv`)
 Displays current transaction status using Time-Division Multiplexing:
-* [cite_start]**`rotate_register.sv`:** Generates the walking-one sequence to scan the anodes [cite: 137-140].
-* [cite_start]**`anode_decoder.sv`:** Decodes the active anode to select the corresponding 4-bit data nibble [cite: 63-66].
-* [cite_start]**`mux4x1.sv`:** Routes the selected nibble to the segment decoder [cite: 77-80].
-* [cite_start]**`decoder_bin2hex.sv`:** Converts 4-bit binary to 7-segment Hex patterns [cite: 40-57].
+* [cite_start]**`rotate_register.sv`:** Generates the walking-one sequence to scan the anodes.
+* [cite_start]**`anode_decoder.sv`:** Decodes the active anode to select the corresponding 4-bit data nibble.
+* [cite_start]**`mux4x1.sv`:** Routes the selected nibble to the segment decoder.
+* [cite_start]**`decoder_bin2hex.sv`:** Converts 4-bit binary to 7-segment Hex patterns.
 
 ---
 
