@@ -1,4 +1,8 @@
-module button_counter(
+// FILE : DEBOUNCER 
+// Author : MEITAR SHIMONI
+// DESCRIPTION : Latch in data after a press of CAPTURE_TIME
+// also decodes different values for the system  
+module button_counter #(parameter CAPTURE_TIME = 64)( // 1736
     input clk, 
     input CE,
     input reset_n,
@@ -26,25 +30,23 @@ always @(posedge clk or negedge reset_n) begin  // clk 3200Hz
         start_latch <= 0;
     end else if(CE) begin
         if (center_button) begin
-            if (count == 64) begin
+            if (count == CAPTURE_TIME) begin
                 count <= 0;
                 data_latch <= data;
                 delay_latch <= delay;
                 start_latch <= center_button;
-//                if(!start_latch) start_latch <= center_button; // to avoid double transactions since the clock is long
-//                else start_latch <= 0;
                 case(delay) 
-                    2'b00:  delay_disp = 0;
-                    2'b01:  delay_disp = 05; // 50 (0.5)
-                    2'b10:  delay_disp = 10; // 100 (1.0)
-                    2'b11:  delay_disp = 20; // 200 (2.0)
-                    default: delay_disp = 0;
+                    2'b00:  delay_disp = 8'h00;
+                    2'b01:  delay_disp = 8'h05; // 50 (0.5)
+                    2'b10:  delay_disp = 8'h10; // 100 (1.0)
+                    2'b11:  delay_disp = 8'h20; // 200 (2.0)
+                    default: delay_disp = 8'h00;
                 endcase
                 case (bytes2send)
                     2'b00:  bytes_to_send = 1;
                     2'b01:  bytes_to_send = 32; // change back to 32!
-                    2'b10:  bytes_to_send = 128; 
-                    2'b11:  bytes_to_send = 256;
+                    2'b10:  bytes_to_send = 128;  // 128
+                    2'b11:  bytes_to_send = 256; // 256
                     default: bytes_to_send = 1;
                 endcase
 
