@@ -1,30 +1,27 @@
-
-
-
-
+// FILE : SEVEN SEGMENT CONTROLLER 
+// Author : MEITAR SHIMONI
+// DESCRIPTION : DISPLAY ON 7 SEGMENT VALUE FOR HEXA ONLY 
 
 module top_seven_segment_controller(
-    input system_clock, //
+    input system_clock, 
     input clock_enable,
-    input cpu_rst_n,//
-    input [31:0] value2disp,//
-    output [6:0] cathodes_out, //
-    output dot,
+    input cpu_rst_n,
+
+    input [7:0] seg87,
+    input [7:0] seg65,
+    input [7:0] seg43,
+    input [7:0] seg21,
+    output [6:0] cathodes_out, 
     output [7:0] anode_out
-//    ,output clk_32 //// for simulation only!
+
 );
 
 wire [2:0] anode_sel;
 wire [3:0] hexa_digit;
 
-//wire dot;
-// make a dot only between the 6-5 : or 3-2 . or 2-1 .
-// should like something like this: [][]:[][] | [].[]:[][]
-// dot active at low? if yes -> d
-assign dot = anode_out[6] | anode_out[3] | anode_out[2]; 
 
-
-
+wire [32:0] total_disp;
+assign total_disp = {seg87,seg65,seg43,seg21};
 // ---------------------------------
 rotate_register rot_reg_inst(
     .clk(system_clock),
@@ -39,15 +36,16 @@ anode_decoder anode_dec_inst(
     .anode_sel(anode_sel)
 );
 
+
 mux4x1 mux_inst(
-    .in0(value2disp[31:28]),
-    .in1(value2disp[27:24]),
-    .in2(value2disp[23:20]),
-    .in3(value2disp[19:16]),
-    .in4(value2disp[15:12]),
-    .in5(value2disp[11:8]),
-    .in6(value2disp[7:4]),
-    .in7(value2disp[3:0]),
+    .in0(seg87[7:4]), //f
+    .in1(seg87[3:0]), // f
+    .in2(seg65[7:4]), // f
+    .in3(seg65[3:0]), // f
+    .in4(seg43[7:4]),
+    .in5(seg43[3:0]),
+    .in6(seg21[7:4]),
+    .in7(seg21[3:0]),
     .sel(anode_sel),
     .mux_out(hexa_digit)
 );
