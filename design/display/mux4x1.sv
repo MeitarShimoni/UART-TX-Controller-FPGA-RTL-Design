@@ -1,3 +1,7 @@
+// FILE : MUX8x1
+// Author : MEITAR SHIMONI
+// DESCRIPTION : DECODING COMMON ANODE
+
 module mux4x1(
     input [3:0] in0,
     input [3:0] in1,
@@ -13,14 +17,14 @@ module mux4x1(
 
 always @(*) begin
     case (sel)
-        3'b000: mux_out = in0;
-        3'b001: mux_out = in1;
-        3'b010: mux_out = in2;
-        3'b011: mux_out = in3;
-        3'b100: mux_out = in4;
-        3'b101: mux_out = in5;
-        3'b110: mux_out = in6;
-        3'b111: mux_out = in7;
+        3'd0: mux_out = in0;
+        3'd1: mux_out = in1;
+        3'd2: mux_out = in2;
+        3'd3: mux_out = in3;
+        3'd4: mux_out = in4;
+        3'd5: mux_out = in5;
+        3'd6: mux_out = in6;
+        3'd7: mux_out = in7;
         default: mux_out = 0; // Default case
     endcase
 end
