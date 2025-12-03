@@ -1,3 +1,7 @@
+// FILE : CLOCK DIVIDER
+// Author : MEITAR SHIMONI
+// DESCRIPTION : BAUD RATE GENERATOR
+
 module clock_divider#(parameter int divider = 1736)(
     input system_clock,
     input rst_n,
